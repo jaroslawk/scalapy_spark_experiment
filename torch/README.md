@@ -1,3 +1,4 @@
 #
-# ScalaPy and torch integration example - training Mnist
+# ScalaPy and torch integration example
+# training Mnist
 #
