@@ -26,7 +26,7 @@ object ScalaExampleMain {
       .collect()
       .toSeq
       .toPythonCopy
-    val fancy_python = Source.fromResource("example/fancy_ml.py").getLines.mkString("\n")
+    val fancy_python = Source.fromResource("fancy_ml.py").getLines.mkString("\n")
     CPythonInterpreter.execManyLines(fancy_python)
     val res = py.Dynamic.global.fancy_ml(mlInput).as[Seq[String]]
     println(res)
