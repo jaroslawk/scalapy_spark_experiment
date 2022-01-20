@@ -1,16 +1,12 @@
-import torch
 import pandas as pd
-import numpy as np
-from torch.nn import Linear
+import torch
 import torch.nn.functional as F
-from sentence_transformers import SentenceTransformer
-
-import torch_geometric.transforms as T
-from torch_geometric.nn import SAGEConv, to_hetero
-
-from torch_geometric.data import HeteroData
-from torch_geometric.transforms import ToUndirected, RandomLinkSplit
 from neo4j import GraphDatabase
+from sentence_transformers import SentenceTransformer
+from torch.nn import Linear
+from torch_geometric.data import HeteroData
+from torch_geometric.nn import SAGEConv, to_hetero
+from torch_geometric.transforms import ToUndirected, RandomLinkSplit
 
 
 def fetch_data(query, params={}) -> pd.DataFrame:
