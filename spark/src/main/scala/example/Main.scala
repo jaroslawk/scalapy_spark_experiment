@@ -1,11 +1,8 @@
 package example
 
-import me.shadaj.scalapy.interpreter.CPythonInterpreter
 import me.shadaj.scalapy.py
-import me.shadaj.scalapy.py.{PyQuote, SeqConverters}
+import me.shadaj.scalapy.py.SeqConverters
 import org.apache.spark.sql.SparkSession
-
-import scala.io.Source
 
 object ScalaExampleMain {
 
@@ -26,8 +23,9 @@ object ScalaExampleMain {
       .collect()
       .toSeq
       .toPythonCopy
-    val fancy_python = Source.fromResource("fancy_ml.py").getLines.mkString("\n")
-    CPythonInterpreter.execManyLines(fancy_python)
+
+    execute("fancy_ml.py")
+
     val res = py.Dynamic.global.fancy_ml(mlInput).as[Seq[String]]
     println(res)
   }
