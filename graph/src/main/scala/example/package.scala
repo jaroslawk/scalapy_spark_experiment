@@ -1,12 +1,18 @@
-import me.shadaj.scalapy.interpreter.{Platform, PyValue}
+import me.shadaj.scalapy.interpreter.{CPythonInterpreter, Platform, PyValue}
 import me.shadaj.scalapy.py
 import me.shadaj.scalapy.py.ConvertableToSeqElem
 import me.shadaj.scalapy.readwrite.Writer
 
 import java.util.NoSuchElementException
 import scala.collection.Iterator
+import scala.io.Source
 
 package object example {
+
+  def execute(pyFile: String) = {
+    val fancy_python = Source.fromResource(pyFile).getLines.mkString("\n")
+    CPythonInterpreter.execManyLines(fancy_python)
+  }
 
   // TODO: fixme
   implicit def writableSeqElem[Double](implicit writer: Writer[Double]): ConvertableToSeqElem[Double] = new ConvertableToSeqElem[Double] {
@@ -15,7 +21,8 @@ package object example {
     def convertProxy(v: Double): PyValue = writer.write(v)
   }
 
-  def len(py_val: py.Dynamic) = py.Dynamic.global.len(py_val).as[Int]
+  def len(pyVal: py.Dynamic) = py.Dynamic.global.len(pyVal).as[Int]
+  def del(pyVal: py.Dynamic) = py.Dynamic.global.del(pyVal)
 
   // TODO:fixme
   def maybeValue(py_it: py.Dynamic): Option[py.Dynamic] = {
@@ -44,7 +51,7 @@ package object example {
     val t0 = System.nanoTime()
     val result = block
     val t1 = System.nanoTime()
-    println("Elapsed time: " + (t1 - t0)/1000000000 + "s")
+    println("Elapsed time: " + (t1 - t0) / 1000000000 + "s")
     result
   }
 }
