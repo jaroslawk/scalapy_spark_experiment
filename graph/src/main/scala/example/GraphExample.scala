@@ -6,42 +6,43 @@ import me.shadaj.scalapy.py.{Any, ConvertableToSeqElem, PyQuote, SeqConverters}
 import me.shadaj.scalapy.readwrite.Writer
 
 object GraphExample extends Greeting with App {
+
   val torch = py.module("torch")
   val ge = py.module("torch_geometric.datasets")
   val T = py.module("torch_geometric.transforms")
 
   val device = torch.device(if (torch.cuda.is_available().as[Boolean]) "gpu" else "cpu")
-  execute("model.py")
   val dataset = ge.MovieLens("./data/MovieLens", model_name="all-MiniLM-L6-v2")
   val data = dataset.bracketAccess(0).to(device)
 
+  execute("model.py")
+
   // Add user node features for message passing:
   data.bracketAccess("user").x = torch.eye(data.bracketAccess("user").num_nodes, device=device)
-  del(data.bracketAccess("user").num_nodes)
+  data.bracketAccess("user").attrDelete("num_nodes")
 
   // Add a reverse ('movie', 'rev_rates', 'user') relation for message passing:
   val data_uni = T.ToUndirected()(data)
-  del(data_uni.bracketAccess("movie", "rev_rates", "user").edge_label)  // Remove "reverse" label.
+  data_uni.bracketAccess("movie", "rev_rates", "user").attrDelete("edge_label")   // Remove "reverse" label.
 
+  import me.shadaj.scalapy.py.writableSeqElem
   // Perform a link-level split into training, validation, and test edges:
   val train_data, val_data, test_data = T.RandomLinkSplit(
     num_val=0.1,
     num_test=0.1,
     neg_sampling_ratio=0.0,
-    edge_types=List("user", "rates", "movie").toPythonProxy,
-    rev_edge_types=List("movie", "rev_rates", "user").toPythonProxy,
-  )(data)
+    edge_types=List(Seq("user", "rates", "movie").toPythonProxy).toPythonProxy,
+    // RandomLinkSplit expect to have: edge_types=[("user", "rates", "movie")], rev_edge_types=[("movie", "rev_rates", "user")]
+    // and there is no direct way to create python tuples out of Seq
+    rev_edge_types=List(Seq("movie", "rev_rates", "user").toPythonProxy).toPythonProxy,
+  )(data_uni)
 
-  /*
-    println(train_data)
+  //# We have an unbalanced dataset with many labels for rating 3 and 4, and very
+  //# few for 0 and 1. Therefore we use a weighted MSE loss.
+  val weight = torch.bincount(train_data.bracketAccess(Seq("user", "movie").toPythonProxy)).edge_label
 
-  # We have an unbalanced dataset with many labels for rating 3 and 4, and very
-  # few for 0 and 1. Therefore we use a weighted MSE loss.
-  if args.use_weighted_loss:
-    weight = torch.bincount(train_data['user', 'movie'].edge_label)
-  weight = weight.max() / weight
-  else:
-  weight = None
+  println(weight)
+  /*weight = weight.max() / weight
 
   model = Model(hidden_channels=32).to(device)
 

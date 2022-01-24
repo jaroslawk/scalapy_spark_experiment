@@ -1,6 +1,6 @@
 import me.shadaj.scalapy.interpreter.{CPythonInterpreter, Platform, PyValue}
 import me.shadaj.scalapy.py
-import me.shadaj.scalapy.py.ConvertableToSeqElem
+import me.shadaj.scalapy.py.{Any, ConvertableToSeqElem}
 import me.shadaj.scalapy.readwrite.Writer
 
 import java.util.NoSuchElementException
@@ -14,15 +14,7 @@ package object example {
     CPythonInterpreter.execManyLines(fancy_python)
   }
 
-  // TODO: fixme
-  implicit def writableSeqElem[Double](implicit writer: Writer[Double]): ConvertableToSeqElem[Double] = new ConvertableToSeqElem[Double] {
-    def convertCopy(v: Double): Platform.Pointer = writer.writeNative(v)
-
-    def convertProxy(v: Double): PyValue = writer.write(v)
-  }
-
   def len(pyVal: py.Dynamic) = py.Dynamic.global.len(pyVal).as[Int]
-  def del(pyVal: py.Dynamic) = py.Dynamic.global.del(pyVal)
 
   // TODO:fixme
   def maybeValue(py_it: py.Dynamic): Option[py.Dynamic] = {
